@@ -1,0 +1,1 @@
+# aspnetcoreapp_with_docker
