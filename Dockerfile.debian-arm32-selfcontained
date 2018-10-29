@@ -1,0 +1,29 @@
+#FROM microsoft/dotnet:2.1-sdk-stretch-arm32v7 AS build
+FROM microsoft/dotnet:2.1-sdk AS build
+WORKDIR /app
+
+# copy csproj and restore as distinct layers
+COPY *.csproj ./
+RUN dotnet restore
+
+# Copy everything else and build
+COPY . ./
+RUN dotnet publish -c Release -o out -r linux-arm
+
+# Build runtime image
+FROM microsoft/dotnet:2.1-runtime-deps-stretch-slim-arm32v7 AS runtime
+WORKDIR /app
+COPY --from=build /app/out .
+ENTRYPOINT ["dotnet", "aspnetcoreapp.dll"]
+
+# docker build -t aspnetcoreapp/v1 .
+# docker build -t aspnetcoreapp/v1 -f Dockerfile.debian-arm32-selfcontained .
+
+# docker save -o aspnetcoreapp.tar aspnetcoreapp
+# docker save -o aspnetcoreapp_v1.tar aspnetcoreapp/v1
+
+# docker load --input aspnetcoreapp.tar
+# docker load --input aspnetcoreapp_v1.tar
+
+# docker run -d -p 8081:80 --name myapp aspnetapp
+# docker run -d -p 8082:80 aspnetcoreapp/v1
